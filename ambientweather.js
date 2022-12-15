@@ -51,6 +51,8 @@ class AmbientWeather extends HTMLElement {
       .then((result) => {
         const data = result[0].lastData;
 
+        this.wrapper.querySelector('.loading').remove();
+
         this.addSection('temperature', data.tempf + '&deg; F');
         this.addSection(
           'wind',
@@ -59,12 +61,22 @@ class AmbientWeather extends HTMLElement {
 
         if (data.hourlyrainin) {
           this.addSection(
-            'current rain rate',
+            'the current rain rate',
             data.hourlyrainin + ' inches/hour'
           );
         } else {
           const raindate = new Date(data.lastRain);
-          this.addSection('last time it rained', raindate.toLocaleString());
+          const [month, day, hour, minute] = [
+            raindate.getMonth() + 1,
+            raindate.getDate(),
+            raindate.getHours(),
+            raindate.getMinutes() + ''
+          ];
+
+          this.addSection(
+            'the last time it rained',
+            `${month}/${day} ${hour}:${minute.padStart(2, '0')}`
+          );
         }
       })
       .catch((err) => {
@@ -90,9 +102,9 @@ class AmbientWeather extends HTMLElement {
 
       .data-text {
         font-size: var(--data-font-size, 2em);
-        font-stretch: var(--data-font-stretch, 90%);
-        font-weight: var(--data-font-weight, 800);
-        color: var(--header-color, #000000);
+        font-stretch: var(--data-font-stretch, 95%);
+        font-weight: var(--data-font-weight, 700);
+        color: var(--data-color, #000000);
         margin-bottom: 0.5em;
       }
     `;
@@ -101,6 +113,12 @@ class AmbientWeather extends HTMLElement {
 
     if (this.hasAttribute('api-key')) {
       this.apikey = this.getAttribute('api-key');
+
+      const loading = document.createElement('div');
+      loading.classList.add('loading');
+      loading.innerText = 'Loading...';
+      this.wrapper.append(loading);
+
       this.loadData();
     } else {
       this.addSection('error', 'No API key');
